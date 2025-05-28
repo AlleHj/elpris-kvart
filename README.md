@@ -76,5 +76,3 @@ En anpassad Home Assistant-integration för att hämta och visa timpriser för e
     * `const.py`
     * `config_flow.py`
     * `__init__.py`
-
-*(Tidigare versionhistorik kan läggas till här om så önskas)*
