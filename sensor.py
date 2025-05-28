@@ -12,7 +12,7 @@ from homeassistant.helpers.event import async_track_point_in_time
 
 from homeassistant.components.sensor import (
     SensorEntity,
-    SensorStateClass,
+    # SensorStateClass, # Behövs inte om vi sätter _attr_state_class = None direkt
     SensorDeviceClass,
 )
 
@@ -45,7 +45,7 @@ from .const import (
 from . import ElprisDataUpdateCoordinator # type: ignore[attr-defined]
 
 _LOGGER = logging.getLogger(__name__)
-SENSOR_VERSION = "2025-05-28-v0.1.5" # Uppdaterad sensorfilversion
+SENSOR_VERSION = "2025-05-28-v0.1.5"
 _LOGGER.info(f"Elpris Timme Sensor Module Loaded - Version: {SENSOR_VERSION}")
 
 
@@ -84,22 +84,22 @@ class BaseElprisSensor(CoordinatorEntity[ElprisDataUpdateCoordinator], SensorEnt
         self,
         coordinator: ElprisDataUpdateCoordinator,
         entry: ConfigEntry,
-        price_area: str,
+        price_area: str, # Behåll price_area här för unique_id och device_info
     ):
         super().__init__(coordinator)
         self._entry = entry
-        self._price_area = price_area
+        self._price_area = price_area # Används för unique_id och device_info
         self._unsub_timer = None
         self._raw_current_spot_price_sek: float | None = None
 
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry.entry_id)},
-            "name": f"Elpris Timme ({price_area})",
+            "name": f"Elpris Timme ({price_area})", # Enhetsnamnet kan fortfarande inkludera price_area
             "manufacturer": "Custom ElprisTimme",
             "model": f"API ({price_area})",
             "entry_type": "service",
         }
-
+# ... (resten av BaseElprisSensor som tidigare) ...
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
         _LOGGER.info(
@@ -277,13 +277,14 @@ class BaseElprisSensor(CoordinatorEntity[ElprisDataUpdateCoordinator], SensorEnt
 # --- Specific Sensor Implementations ---
 class ElprisSpotSensorOre(BaseElprisSensor):
     """Sensor for current spot price in öre/kWh."""
-    _attr_state_class = None # ÄNDRAD från SensorStateClass.MEASUREMENT
+    _attr_state_class = None
     _attr_device_class = SensorDeviceClass.MONETARY
 
     def __init__(self, coordinator: ElprisDataUpdateCoordinator, entry: ConfigEntry, price_area: str):
         super().__init__(coordinator, entry, price_area)
-        self._attr_name = f"Spotpris {price_area} öre/kWh" # Mer unikt namn
-        object_id_part = f"spotpris_{price_area.lower()}_ore"
+        self._attr_name = "Spotpris i öre/kWh" # ÅTERSTÄLLT NAMN
+        # unique_id och object_id kan fortfarande vara mer detaljerade
+        object_id_part = f"spotpris_{price_area.lower()}_ore" # Håll kvar price_area för unikhet
         self._attr_unique_id = f"{entry.entry_id}_{object_id_part}"
 
         self._attr_native_unit_of_measurement="öre/kWh"
@@ -336,13 +337,13 @@ class ElprisSpotSensorOre(BaseElprisSensor):
 
 class ElprisInklusivePaslagSensorOre(BaseElprisSensor):
     """Sensor for current spot price + surcharge in öre/kWh."""
-    _attr_state_class = None # ÄNDRAD från SensorStateClass.MEASUREMENT
+    _attr_state_class = None
     _attr_device_class = SensorDeviceClass.MONETARY
 
     def __init__(self, coordinator: ElprisDataUpdateCoordinator, entry: ConfigEntry, price_area: str):
         super().__init__(coordinator, entry, price_area)
-        self._attr_name = f"Spotpris + påslag {price_area} öre/kWh" # Mer unikt namn
-        object_id_part = f"totalpris_{price_area.lower()}_ore"
+        self._attr_name = "Spotpris + påslag i öre/kWh" # ÅTERSTÄLLT NAMN
+        object_id_part = f"totalpris_{price_area.lower()}_ore" # Håll kvar price_area för unikhet
         self._attr_unique_id = f"{entry.entry_id}_{object_id_part}"
 
         self._attr_native_unit_of_measurement="öre/kWh"
@@ -386,13 +387,13 @@ class ElprisInklusivePaslagSensorOre(BaseElprisSensor):
 
 class ElprisSpotSensorSEK(BaseElprisSensor):
     """Sensor for current spot price in SEK/kWh."""
-    _attr_state_class = None # ÄNDRAD från SensorStateClass.MEASUREMENT
+    _attr_state_class = None
     _attr_device_class = SensorDeviceClass.MONETARY
 
     def __init__(self, coordinator: ElprisDataUpdateCoordinator, entry: ConfigEntry, price_area: str):
         super().__init__(coordinator, entry, price_area)
-        self._attr_name = f"Spotpris {price_area} SEK/kWh" # Mer unikt namn
-        object_id_part = f"spotpris_{price_area.lower()}_sek"
+        self._attr_name = "Spotpris i SEK/kWh" # ÅTERSTÄLLT NAMN
+        object_id_part = f"spotpris_{price_area.lower()}_sek" # Håll kvar price_area för unikhet
         self._attr_unique_id = f"{entry.entry_id}_{object_id_part}"
 
         self._attr_native_unit_of_measurement="SEK/kWh"
@@ -445,13 +446,13 @@ class ElprisSpotSensorSEK(BaseElprisSensor):
 
 class ElprisInklusivePaslagSensorSEK(BaseElprisSensor):
     """Sensor for current spot price + surcharge in SEK/kWh."""
-    _attr_state_class = None # ÄNDRAD från SensorStateClass.MEASUREMENT
+    _attr_state_class = None
     _attr_device_class = SensorDeviceClass.MONETARY
 
     def __init__(self, coordinator: ElprisDataUpdateCoordinator, entry: ConfigEntry, price_area: str):
         super().__init__(coordinator, entry, price_area)
-        self._attr_name = f"Spotpris + påslag {price_area} SEK/kWh" # Mer unikt namn
-        object_id_part = f"totalpris_{price_area.lower()}_sek"
+        self._attr_name = "Spotpris + påslag i SEK/kWh" # ÅTERSTÄLLT NAMN
+        object_id_part = f"totalpris_{price_area.lower()}_sek" # Håll kvar price_area för unikhet
         self._attr_unique_id = f"{entry.entry_id}_{object_id_part}"
 
         self._attr_native_unit_of_measurement="SEK/kWh"
@@ -500,28 +501,23 @@ class ElprisInklusivePaslagSensorSEK(BaseElprisSensor):
 class SurchargeDisplaySensorBase(SensorEntity):
     """Base class for surcharge display sensors."""
     _attr_should_poll = False
-    _attr_state_class = None # ÄNDRAD från SensorStateClass.MEASUREMENT
+    _attr_state_class = None
     _attr_device_class = SensorDeviceClass.MONETARY
     _attr_icon = ICON_SURCHARGE_DISPLAY
 
-    def __init__(self, entry: ConfigEntry, price_area: str):
+    def __init__(self, entry: ConfigEntry, price_area: str): # price_area behövs för unique_id/object_id
         self._entry = entry
-        self._price_area = price_area
-        self._update_surcharge_value()
+        self._price_area = price_area # Används för unique_id och device_info
+        # self._update_surcharge_value() # Anropas av subklassens __init__ via super()
 
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry.entry_id)},
-            "name": f"Elpris Timme ({price_area})",
+            "name": f"Elpris Timme ({price_area})", # Enhetsnamnet kan fortfarande inkludera price_area
             "manufacturer": "Custom ElprisTimme",
             "model": f"API ({price_area})",
             "entry_type": "service",
         }
-        _LOGGER.debug(
-            "Initialized %s (Unique ID: %s), Surcharge: %s",
-            self.name,
-            self.unique_id,
-            self._attr_native_value
-        )
+        # _LOGGER.debug(...) flyttad till subklassens __init__ efter att _attr_name är satt.
 
     def _get_surcharge_ore_from_config(self) -> float:
         """Helper to get surcharge in öre from config entry."""
@@ -539,22 +535,18 @@ class SurchargeOreSensor(SurchargeDisplaySensorBase):
     """Sensor to display the configured surcharge in öre/kWh."""
 
     def __init__(self, entry: ConfigEntry, price_area: str):
-        self._attr_name = f"Påslag {price_area} öre/kWh" # Mer unikt namn
-        self._attr_object_id = f"paslag_{price_area.lower()}_ore"
+        self._attr_name = "Spotpris påslag Öre /kWh" # ÅTERSTÄLLT NAMN
+        # unique_id och object_id kan fortfarande vara mer detaljerade
+        self._attr_object_id = f"paslag_{price_area.lower()}_ore" # Håll kvar price_area för unikhet
         self._attr_unique_id = f"{entry.entry_id}_{self._attr_object_id}"
         self._attr_native_unit_of_measurement = "öre/kWh"
         self._attr_suggested_display_precision = ORE_ROUNDING_DECIMALS
-        super().__init__(entry, price_area)
-
-
-    def _update_surcharge_value(self) -> None:
-        """Update the sensor's native value to the surcharge in öre."""
-        self._attr_native_value = round(
-            self._get_surcharge_ore_from_config(), ORE_ROUNDING_DECIMALS
-        )
+        super().__init__(entry, price_area) # Anropar base __init__
+        self._update_surcharge_value() # Sätt initialt värde
         _LOGGER.debug(
-            "%s: Updated surcharge value to %s öre/kWh",
-            self.name,
+            "Initialized %s (Unique ID: %s), Surcharge: %s",
+            self._attr_name, # Använd self._attr_name istället för self.name här
+            self.unique_id,
             self._attr_native_value
         )
 
@@ -563,19 +555,24 @@ class SurchargeSEKSensor(SurchargeDisplaySensorBase):
     """Sensor to display the configured surcharge in SEK/kWh."""
 
     def __init__(self, entry: ConfigEntry, price_area: str):
-        self._attr_name = f"Påslag {price_area} SEK/kWh" # Mer unikt namn
-        self._attr_object_id = f"paslag_{price_area.lower()}_sek"
+        self._attr_name = "Spotpris påslag SEK /kWh" # ÅTERSTÄLLT NAMN
+        self._attr_object_id = f"paslag_{price_area.lower()}_sek" # Håll kvar price_area för unikhet
         self._attr_unique_id = f"{entry.entry_id}_{self._attr_object_id}"
         self._attr_native_unit_of_measurement = "SEK/kWh"
         self._attr_suggested_display_precision = SEK_ROUNDING_DECIMALS
-        super().__init__(entry, price_area)
+        super().__init__(entry, price_area) # Anropar base __init__
+        self._update_surcharge_value() # Sätt initialt värde
+        _LOGGER.debug(
+            "Initialized %s (Unique ID: %s), Surcharge: %s",
+            self._attr_name, # Använd self._attr_name istället för self.name här
+            self.unique_id,
+            self._attr_native_value
+        )
 
     def _update_surcharge_value(self) -> None:
         """Update the sensor's native value to the surcharge in SEK."""
         surcharge_ore = self._get_surcharge_ore_from_config()
         self._attr_native_value = round(surcharge_ore / 100.0, SEK_ROUNDING_DECIMALS)
-        _LOGGER.debug(
-            "%s: Updated surcharge value to %s SEK/kWh",
-            self.name,
-            self._attr_native_value
-        )
+        # Loggning flyttad till subklassens __init__ eller en gemensam update-metod om state ändras
+        # _LOGGER.debug(... value updated ...) kan läggas till om värdet kan ändras dynamiskt
+        # utan en fullständig omstart (vilket det inte gör just nu för påslagssensorerna).
