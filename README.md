@@ -15,6 +15,15 @@ En anpassad Home Assistant-integration för att hämta och visa timpriser för e
 
 ## Chängelogg
 
+### Version 0.1.5 (2025-05-28)
+
+* **Rättelser (Sensorer):**
+    * `sensor.py`: Korrigerat `state_class` för alla sensorer med `device_class: SensorDeviceClass.MONETARY`. Går från `SensorStateClass.MEASUREMENT` till `None` för att följa Home Assistants rekommendationer och åtgärda varningsmeddelanden i loggen. Detta gäller `ElprisSpotSensorOre`, `ElprisInklusivePaslagSensorOre`, `ElprisSpotSensorSEK`, `ElprisInklusivePaslagSensorSEK`, samt de baserade `SurchargeOreSensor` och `SurchargeSEKSensor`. Sensorernas namn har också gjorts mer unika genom att inkludera elområde.
+* **Filversioner uppdaterade till `2025-05-28-v0.1.5` för:**
+    * `sensor.py`
+* **Övrigt:**
+    * `manifest.json`: Version uppdaterad till `0.1.5`.
+
 ### Version 0.1.4 (2025-05-28)
 
 * **Förbättringar & Rättelser (Primärt kodstil och robusthet):**

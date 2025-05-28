@@ -6,7 +6,7 @@
   "codeowners": ["@AlleHj"],
   "requirements": ["aiohttp"],
   "iot_class": "cloud_polling",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "config_flow": true,
   "options_flow": true,
   "loggers": ["custom_components.elpris_timme"]
