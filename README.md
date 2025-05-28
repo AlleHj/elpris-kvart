@@ -21,7 +21,7 @@ En anpassad Home Assistant-integration för att hämta och visa timpriser för e
     * **Hjälplänk i Konfiguration:**
         * En "?"-ikon visas nu i konfigurationsflödet (både initial setup och alternativ).
         * Länkar till en ny `HELP.md`-fil i repositoryt som beskriver de olika alternativen.
-        * `manifest.json` uppdaterad med korrekt `documentation`-URL.
+        * `manifest.json` uppdaterad med korrekt `documentation`-URL (pekar nu på `master`-grenen).
         * `config_flow.py` modifierad för att hämta och använda dokumentationslänken via `description_placeholders` och `strings.json`.
     * **Debug-läge via UI:**
         * En kryssruta "Aktivera debug-loggning" har lagts till i "Alternativ" för integrationen.
@@ -35,12 +35,14 @@ En anpassad Home Assistant-integration för att hämta och visa timpriser för e
         * Korrekt `codeowners` och `issue_tracker`-URL (`AlleHj`).
         * `options_flow` satt till `true`.
         * Version uppdaterad till `0.1.3`.
+        * Korrigerad `documentation`-URL till att peka på `master`-grenen för `HELP.md`.
     * `config_flow.py`:
         * Använder nu `strings.json` för felmeddelanden och beskrivningar mer konsekvent.
         * Säkerställer att `CONF_DEBUG_MODE` initialiseras i `options` när en ny config entry skapas.
     * `__init__.py`:
         * Förbättrad hantering av options-uppdateringar för att omedelbart justera loggnivån.
         * Mer detaljerad debug-loggning tillagd på flera ställen.
+        * **Kodstil:** Importer sorterade och loggningsanrop ändrade till "lazy % formatting" för att följa rekommendationer från Pylint/Ruff och minska potentiella prestandaproblem.
 * **Nya Filer:**
     * `HELP.md`: Innehåller detaljerad hjälptext.
     * `strings.json`: Centraliserar UI-texter för konfiguration och alternativ.

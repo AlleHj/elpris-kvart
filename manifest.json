@@ -1,7 +1,7 @@
 {
   "domain": "elpris_timme",
   "name": "Elpris Timme",
-  "documentation": "https://github.com/AlleHj/home-assistant-elpris-timme/blob/main/HELP.md",
+  "documentation": "https://github.com/AlleHj/home-assistant-elpris-timme/blob/master/HELP.md",
   "issue_tracker": "https://github.com/AlleHj/home-assistant-elpris-timme/issues",
   "codeowners": ["@AlleHj"],
   "requirements": [],
