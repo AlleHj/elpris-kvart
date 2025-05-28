@@ -3,8 +3,8 @@
 import logging
 from datetime import timedelta, datetime as DateTime
 
-from homeassistant.core import HomeAssistant, callback
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant, callback # callback behövs inte här, men skadar inte
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
@@ -12,7 +12,6 @@ from homeassistant.helpers.event import async_track_point_in_time
 
 from homeassistant.components.sensor import (
     SensorEntity,
-    # SensorStateClass, # Behövs inte om vi sätter _attr_state_class = None direkt
     SensorDeviceClass,
 )
 
@@ -84,22 +83,22 @@ class BaseElprisSensor(CoordinatorEntity[ElprisDataUpdateCoordinator], SensorEnt
         self,
         coordinator: ElprisDataUpdateCoordinator,
         entry: ConfigEntry,
-        price_area: str, # Behåll price_area här för unique_id och device_info
+        price_area: str,
     ):
         super().__init__(coordinator)
         self._entry = entry
-        self._price_area = price_area # Används för unique_id och device_info
+        self._price_area = price_area
         self._unsub_timer = None
         self._raw_current_spot_price_sek: float | None = None
 
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry.entry_id)},
-            "name": f"Elpris Timme ({price_area})", # Enhetsnamnet kan fortfarande inkludera price_area
+            "name": f"Elpris Timme ({price_area})",
             "manufacturer": "Custom ElprisTimme",
             "model": f"API ({price_area})",
             "entry_type": "service",
         }
-# ... (resten av BaseElprisSensor som tidigare) ...
+
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
         _LOGGER.info(
@@ -112,7 +111,7 @@ class BaseElprisSensor(CoordinatorEntity[ElprisDataUpdateCoordinator], SensorEnt
         self._schedule_next_hourly_price_update()
         self.async_on_remove(
             self.coordinator.async_add_listener(
-                self._handle_coordinator_data_update_for_base
+                self._handle_coordinator_data_update_for_base # type: ignore[arg-type]
             )
         )
         if self.coordinator.last_update_success and self.coordinator.data:
@@ -127,7 +126,7 @@ class BaseElprisSensor(CoordinatorEntity[ElprisDataUpdateCoordinator], SensorEnt
             self._unsub_timer()
         await super().async_will_remove_from_hass()
 
-    @callback
+    @callback # type: ignore[misc] # Mypy kan klaga på callback här om inte self används explicit
     def _handle_coordinator_data_update_for_base(self) -> None:
         if self.coordinator.last_update_success:
             self._update_internal_data(write_state=True)
@@ -167,7 +166,10 @@ class BaseElprisSensor(CoordinatorEntity[ElprisDataUpdateCoordinator], SensorEnt
         )
 
     def _update_sensor_specific_data(self) -> None:
-        raise NotImplementedError()
+        # This method MUST be implemented by subclasses
+        raise NotImplementedError(
+            "Subclasses of BaseElprisSensor must implement _update_sensor_specific_data"
+        )
 
     def _schedule_next_hourly_price_update(self) -> None:
         if self._unsub_timer:
@@ -282,9 +284,8 @@ class ElprisSpotSensorOre(BaseElprisSensor):
 
     def __init__(self, coordinator: ElprisDataUpdateCoordinator, entry: ConfigEntry, price_area: str):
         super().__init__(coordinator, entry, price_area)
-        self._attr_name = "Spotpris i öre/kWh" # ÅTERSTÄLLT NAMN
-        # unique_id och object_id kan fortfarande vara mer detaljerade
-        object_id_part = f"spotpris_{price_area.lower()}_ore" # Håll kvar price_area för unikhet
+        self._attr_name = "Spotpris i öre/kWh"
+        object_id_part = f"spotpris_{price_area.lower()}_ore"
         self._attr_unique_id = f"{entry.entry_id}_{object_id_part}"
 
         self._attr_native_unit_of_measurement="öre/kWh"
@@ -342,8 +343,8 @@ class ElprisInklusivePaslagSensorOre(BaseElprisSensor):
 
     def __init__(self, coordinator: ElprisDataUpdateCoordinator, entry: ConfigEntry, price_area: str):
         super().__init__(coordinator, entry, price_area)
-        self._attr_name = "Spotpris + påslag i öre/kWh" # ÅTERSTÄLLT NAMN
-        object_id_part = f"totalpris_{price_area.lower()}_ore" # Håll kvar price_area för unikhet
+        self._attr_name = "Spotpris + påslag i öre/kWh"
+        object_id_part = f"totalpris_{price_area.lower()}_ore"
         self._attr_unique_id = f"{entry.entry_id}_{object_id_part}"
 
         self._attr_native_unit_of_measurement="öre/kWh"
@@ -392,8 +393,8 @@ class ElprisSpotSensorSEK(BaseElprisSensor):
 
     def __init__(self, coordinator: ElprisDataUpdateCoordinator, entry: ConfigEntry, price_area: str):
         super().__init__(coordinator, entry, price_area)
-        self._attr_name = "Spotpris i SEK/kWh" # ÅTERSTÄLLT NAMN
-        object_id_part = f"spotpris_{price_area.lower()}_sek" # Håll kvar price_area för unikhet
+        self._attr_name = "Spotpris i SEK/kWh"
+        object_id_part = f"spotpris_{price_area.lower()}_sek"
         self._attr_unique_id = f"{entry.entry_id}_{object_id_part}"
 
         self._attr_native_unit_of_measurement="SEK/kWh"
@@ -451,8 +452,8 @@ class ElprisInklusivePaslagSensorSEK(BaseElprisSensor):
 
     def __init__(self, coordinator: ElprisDataUpdateCoordinator, entry: ConfigEntry, price_area: str):
         super().__init__(coordinator, entry, price_area)
-        self._attr_name = "Spotpris + påslag i SEK/kWh" # ÅTERSTÄLLT NAMN
-        object_id_part = f"totalpris_{price_area.lower()}_sek" # Håll kvar price_area för unikhet
+        self._attr_name = "Spotpris + påslag i SEK/kWh"
+        object_id_part = f"totalpris_{price_area.lower()}_sek"
         self._attr_unique_id = f"{entry.entry_id}_{object_id_part}"
 
         self._attr_native_unit_of_measurement="SEK/kWh"
@@ -497,7 +498,7 @@ class ElprisInklusivePaslagSensorSEK(BaseElprisSensor):
         self._attr_extra_state_attributes = attrs
         _LOGGER.info("%s updated. Value: %s", self.name, self._attr_native_value)
 
-# --- New Surcharge Display Sensors ---
+
 class SurchargeDisplaySensorBase(SensorEntity):
     """Base class for surcharge display sensors."""
     _attr_should_poll = False
@@ -505,49 +506,72 @@ class SurchargeDisplaySensorBase(SensorEntity):
     _attr_device_class = SensorDeviceClass.MONETARY
     _attr_icon = ICON_SURCHARGE_DISPLAY
 
-    def __init__(self, entry: ConfigEntry, price_area: str): # price_area behövs för unique_id/object_id
+    def __init__(self, entry: ConfigEntry, price_area: str):
         self._entry = entry
-        self._price_area = price_area # Används för unique_id och device_info
-        # self._update_surcharge_value() # Anropas av subklassens __init__ via super()
+        self._price_area = price_area
+        # _update_surcharge_value() anropas nu explicit i subklassernas __init__ EFTER super().__init__()
 
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry.entry_id)},
-            "name": f"Elpris Timme ({price_area})", # Enhetsnamnet kan fortfarande inkludera price_area
+            "name": f"Elpris Timme ({price_area})",
             "manufacturer": "Custom ElprisTimme",
             "model": f"API ({price_area})",
             "entry_type": "service",
         }
-        # _LOGGER.debug(...) flyttad till subklassens __init__ efter att _attr_name är satt.
 
     def _get_surcharge_ore_from_config(self) -> float:
         """Helper to get surcharge in öre from config entry."""
-        return float(self._entry.options.get(
+        surcharge_val = self._entry.options.get(
             CONF_SURCHARGE_ORE,
             self._entry.data.get(CONF_SURCHARGE_ORE, DEFAULT_SURCHARGE_ORE)
-        ))
+        )
+        try:
+            return float(surcharge_val)
+        except (ValueError, TypeError):
+            _LOGGER.warning(
+                "Invalid surcharge value '%s' in config, defaulting to %s",
+                surcharge_val,
+                DEFAULT_SURCHARGE_ORE
+            )
+            return DEFAULT_SURCHARGE_ORE
 
     def _update_surcharge_value(self) -> None:
-        """Update the sensor's native value based on the config. Must be implemented."""
-        raise NotImplementedError("Subclasses must implement _update_surcharge_value")
+        """Update the sensor's native value based on the config. Must be implemented by subclasses."""
+        # Denna metod MÅSTE implementeras av subklasser.
+        # Om denna text syns i ett fel, har subklassen inte korrekt implementerat metoden.
+        raise NotImplementedError(
+            "Subclasses of SurchargeDisplaySensorBase must implement _update_surcharge_value"
+        )
 
 
 class SurchargeOreSensor(SurchargeDisplaySensorBase):
     """Sensor to display the configured surcharge in öre/kWh."""
 
     def __init__(self, entry: ConfigEntry, price_area: str):
-        self._attr_name = "Spotpris påslag Öre /kWh" # ÅTERSTÄLLT NAMN
-        # unique_id och object_id kan fortfarande vara mer detaljerade
-        self._attr_object_id = f"paslag_{price_area.lower()}_ore" # Håll kvar price_area för unikhet
+        self._attr_name = "Spotpris påslag Öre /kWh"
+        self._attr_object_id = f"paslag_{price_area.lower()}_ore"
         self._attr_unique_id = f"{entry.entry_id}_{self._attr_object_id}"
         self._attr_native_unit_of_measurement = "öre/kWh"
         self._attr_suggested_display_precision = ORE_ROUNDING_DECIMALS
-        super().__init__(entry, price_area) # Anropar base __init__
-        self._update_surcharge_value() # Sätt initialt värde
+
+        # Anropa basklassens __init__ FÖRST
+        super().__init__(entry, price_area)
+
+        # Anropa sedan den implementerade metoden i DENNA klass
+        self._update_surcharge_value()
+
         _LOGGER.debug(
             "Initialized %s (Unique ID: %s), Surcharge: %s",
-            self._attr_name, # Använd self._attr_name istället för self.name här
+            self._attr_name,
             self.unique_id,
             self._attr_native_value
+        )
+
+    # KORREKT INDENTERAD METOD
+    def _update_surcharge_value(self) -> None:
+        """Update the sensor's native value to the surcharge in öre."""
+        self._attr_native_value = round(
+            self._get_surcharge_ore_from_config(), ORE_ROUNDING_DECIMALS
         )
 
 
@@ -555,24 +579,27 @@ class SurchargeSEKSensor(SurchargeDisplaySensorBase):
     """Sensor to display the configured surcharge in SEK/kWh."""
 
     def __init__(self, entry: ConfigEntry, price_area: str):
-        self._attr_name = "Spotpris påslag SEK /kWh" # ÅTERSTÄLLT NAMN
-        self._attr_object_id = f"paslag_{price_area.lower()}_sek" # Håll kvar price_area för unikhet
+        self._attr_name = "Spotpris påslag SEK /kWh"
+        self._attr_object_id = f"paslag_{price_area.lower()}_sek"
         self._attr_unique_id = f"{entry.entry_id}_{self._attr_object_id}"
         self._attr_native_unit_of_measurement = "SEK/kWh"
         self._attr_suggested_display_precision = SEK_ROUNDING_DECIMALS
-        super().__init__(entry, price_area) # Anropar base __init__
-        self._update_surcharge_value() # Sätt initialt värde
+
+        # Anropa basklassens __init__ FÖRST
+        super().__init__(entry, price_area)
+
+        # Anropa sedan den implementerade metoden i DENNA klass
+        self._update_surcharge_value()
+
         _LOGGER.debug(
             "Initialized %s (Unique ID: %s), Surcharge: %s",
-            self._attr_name, # Använd self._attr_name istället för self.name här
+            self._attr_name,
             self.unique_id,
             self._attr_native_value
         )
 
+    # KORREKT INDENTERAD METOD
     def _update_surcharge_value(self) -> None:
         """Update the sensor's native value to the surcharge in SEK."""
         surcharge_ore = self._get_surcharge_ore_from_config()
         self._attr_native_value = round(surcharge_ore / 100.0, SEK_ROUNDING_DECIMALS)
-        # Loggning flyttad till subklassens __init__ eller en gemensam update-metod om state ändras
-        # _LOGGER.debug(... value updated ...) kan läggas till om värdet kan ändras dynamiskt
-        # utan en fullständig omstart (vilket det inte gör just nu för påslagssensorerna).
