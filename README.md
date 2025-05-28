@@ -15,6 +15,22 @@ En anpassad Home Assistant-integration för att hämta och visa timpriser för e
 
 ## Chängelogg
 
+### Version 0.1.4 (2025-05-28)
+
+* **Förbättringar & Rättelser (Primärt kodstil och robusthet):**
+    * `__init__.py`:
+        * **Linting (Ruff/Pylint):**
+            * Importer (I001) har sorterats och formaterats korrekt.
+            * Använder nu `TimeoutError` istället för `asyncio.TimeoutError` (UP041).
+            * Felhantering i API-anrop (`ElprisApi.get_prices`) är mer specifik och fångar `aiohttp.ClientError` före en generell `Exception` (BLE001/W0718). Typ av oväntat exception loggas nu.
+            * Docstring för `_parse_and_validate_prices` ändrad till imperativ stämning (D401).
+            * Flera långa rader har brutits ned för bättre läsbarhet (C0301).
+            * Notering kring varningen TRY301: Den nuvarande logiken för att fånga `ValueError` inom en loop för att skippa felaktiga pris-items bibehålls då den är funktionellt korrekt för avsett syfte, även om Ruff varnar för mönstret.
+        * `manifest.json`: Lagt till `aiohttp` i `requirements`.
+    * `manifest.json`: Version uppdaterad till `0.1.4`.
+* **Filversioner uppdaterade till `2025-05-28-v0.1.4` för:**
+    * `__init__.py`
+
 ### Version 0.1.3 (2025-05-28)
 
 * **Ny Funktionalitet:**
