@@ -1,5 +1,6 @@
 # Version: 2025-05-21-rev13
-"""The Elpris Timme integration."""
+"""The Elpris Kvart integration."""
+
 import asyncio
 import logging
 from datetime import timedelta, date as DateObject, datetime as DateTimeObject
@@ -35,16 +36,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await coordinator.async_config_entry_first_refresh()
 
     hass.data[DOMAIN][entry.entry_id] = coordinator
-    
+
     entry.async_on_unload(entry.add_update_listener(options_update_listener))
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
 
+
 async def options_update_listener(hass: HomeAssistant, entry: ConfigEntry):
     """Handle options update."""
-    _LOGGER.debug(f"Configuration options for {entry.title} have been updated, reloading integration.")
+    _LOGGER.debug(
+        f"Configuration options for {entry.title} have been updated, reloading integration."
+    )
     await hass.config_entries.async_reload(entry.entry_id)
 
 
@@ -102,11 +106,11 @@ class ElprisDataUpdateCoordinator(DataUpdateCoordinator):
         """Initialize the data update coordinator."""
         self.api = ElprisApi(async_get_clientsession(hass), price_area)
         self.price_area = price_area
-        self._entry = entry 
+        self._entry = entry
 
-        self.all_prices: dict[DateObject, list] = {} 
+        self.all_prices: dict[DateObject, list] = {}
         self.tomorrow_prices_successfully_fetched_for_date: DateObject | None = None
-        self.last_api_call_timestamp: DateTimeObject | None = None 
+        self.last_api_call_timestamp: DateTimeObject | None = None
 
         self._current_update_interval = timedelta(hours=NORMAL_UPDATE_INTERVAL_HOURS)
 
@@ -118,7 +122,9 @@ class ElprisDataUpdateCoordinator(DataUpdateCoordinator):
             update_interval=self._current_update_interval,
         )
 
-    def _parse_and_validate_prices(self, raw_prices_list: list, expected_date: DateObject) -> list:
+    def _parse_and_validate_prices(
+        self, raw_prices_list: list, expected_date: DateObject
+    ) -> list:
         """Parses raw price data, validates, and ensures SEK_per_kWh is float."""
         parsed_prices = []
         if not isinstance(raw_prices_list, list):
@@ -129,26 +135,29 @@ class ElprisDataUpdateCoordinator(DataUpdateCoordinator):
 
         for item in raw_prices_list:
             try:
-                price_value_sek = float(item["SEK_per_kWh"]) 
+                price_value_sek = float(item["SEK_per_kWh"])
                 time_start_str = item["time_start"]
-                time_end_str = item.get("time_end") 
-                
+                time_end_str = item.get("time_end")
+
                 time_start_dt = dt_util.parse_datetime(time_start_str)
                 if time_start_dt is None:
                     raise ValueError(f"Failed to parse time_start: {time_start_str}")
 
-                if time_start_dt.astimezone(dt_util.get_default_time_zone()).date() != expected_date:
+                if (
+                    time_start_dt.astimezone(dt_util.get_default_time_zone()).date()
+                    != expected_date
+                ):
                     _LOGGER.warning(
                         f"Price entry for date {time_start_dt.date()} "
                         f"found in data requested for {expected_date}. Skipping. Entry: {item}"
                     )
                     continue
-                
+
                 entry_to_add = {
                     "time_start": time_start_str,
-                    "SEK_per_kWh": price_value_sek, 
+                    "SEK_per_kWh": price_value_sek,
                 }
-                if time_end_str: 
+                if time_end_str:
                     entry_to_add["time_end"] = time_end_str
                 parsed_prices.append(entry_to_add)
 
@@ -157,28 +166,35 @@ class ElprisDataUpdateCoordinator(DataUpdateCoordinator):
                     f"Skipping invalid price entry for {expected_date}: {item}. Error: {e}"
                 )
                 continue
-        
+
         parsed_prices.sort(key=lambda p: dt_util.parse_datetime(p["time_start"]))
         return parsed_prices
 
     async def _async_update_data(self) -> dict[DateObject, list]:
         """Fetch data from API and update internal state."""
         _LOGGER.debug(f"Coordinator update triggered for price area {self.price_area}")
-        
+
         now_local = dt_util.now()
         today_local_date = now_local.date()
         tomorrow_local_date = today_local_date + timedelta(days=1)
-        
-        if today_local_date not in self.all_prices or not self.all_prices[today_local_date]:
+
+        if (
+            today_local_date not in self.all_prices
+            or not self.all_prices[today_local_date]
+        ):
             _LOGGER.info(f"Fetching prices for today: {today_local_date}")
             prices_today_raw = await self.api.get_prices(today_local_date)
             if prices_today_raw:
-                self.all_prices[today_local_date] = self._parse_and_validate_prices(prices_today_raw, today_local_date)
+                self.all_prices[today_local_date] = self._parse_and_validate_prices(
+                    prices_today_raw, today_local_date
+                )
             else:
                 _LOGGER.warning(f"Could not fetch prices for today {today_local_date}.")
 
         time_to_fetch_tomorrow = now_local.hour >= DAILY_FETCH_HOUR
-        tomorrow_prices_needed = self.tomorrow_prices_successfully_fetched_for_date != tomorrow_local_date
+        tomorrow_prices_needed = (
+            self.tomorrow_prices_successfully_fetched_for_date != tomorrow_local_date
+        )
 
         if time_to_fetch_tomorrow and tomorrow_prices_needed:
             _LOGGER.info(
@@ -187,14 +203,20 @@ class ElprisDataUpdateCoordinator(DataUpdateCoordinator):
             )
             prices_tomorrow_raw = await self.api.get_prices(tomorrow_local_date)
             if prices_tomorrow_raw:
-                self.all_prices[tomorrow_local_date] = self._parse_and_validate_prices(prices_tomorrow_raw, tomorrow_local_date)
+                self.all_prices[tomorrow_local_date] = self._parse_and_validate_prices(
+                    prices_tomorrow_raw, tomorrow_local_date
+                )
                 self.tomorrow_prices_successfully_fetched_for_date = tomorrow_local_date
                 _LOGGER.info(
                     f"Successfully fetched {len(self.all_prices[tomorrow_local_date])} "
                     f"prices for tomorrow {tomorrow_local_date}"
                 )
-                if self.update_interval != timedelta(hours=NORMAL_UPDATE_INTERVAL_HOURS):
-                    _LOGGER.debug("Tomorrow's prices fetched, setting update interval to normal.")
+                if self.update_interval != timedelta(
+                    hours=NORMAL_UPDATE_INTERVAL_HOURS
+                ):
+                    _LOGGER.debug(
+                        "Tomorrow's prices fetched, setting update interval to normal."
+                    )
                     self.update_interval = timedelta(hours=NORMAL_UPDATE_INTERVAL_HOURS)
             else:
                 _LOGGER.warning(
@@ -205,20 +227,29 @@ class ElprisDataUpdateCoordinator(DataUpdateCoordinator):
                         f"Fetch for tomorrow failed, setting update interval to {RETRY_INTERVAL_MINUTES} minutes for retries."
                     )
                     self.update_interval = timedelta(minutes=RETRY_INTERVAL_MINUTES)
-        elif not time_to_fetch_tomorrow and self.tomorrow_prices_successfully_fetched_for_date == tomorrow_local_date:
+        elif (
+            not time_to_fetch_tomorrow
+            and self.tomorrow_prices_successfully_fetched_for_date
+            == tomorrow_local_date
+        ):
             if self.update_interval != timedelta(hours=NORMAL_UPDATE_INTERVAL_HOURS):
-                _LOGGER.debug("Ensuring update interval is normal as tomorrow's prices are available.")
+                _LOGGER.debug(
+                    "Ensuring update interval is normal as tomorrow's prices are available."
+                )
                 self.update_interval = timedelta(hours=NORMAL_UPDATE_INTERVAL_HOURS)
 
-        if now_local.hour < DAILY_FETCH_HOUR and self.tomorrow_prices_successfully_fetched_for_date == today_local_date:
+        if (
+            now_local.hour < DAILY_FETCH_HOUR
+            and self.tomorrow_prices_successfully_fetched_for_date == today_local_date
+        ):
             _LOGGER.info(
                 f"It's a new day (before {DAILY_FETCH_HOUR}:00), "
                 f"resetting 'tomorrow_prices_successfully_fetched_for_date' status."
             )
             self.tomorrow_prices_successfully_fetched_for_date = None
             if self.update_interval != timedelta(hours=NORMAL_UPDATE_INTERVAL_HOURS):
-                 self.update_interval = timedelta(hours=NORMAL_UPDATE_INTERVAL_HOURS)
-        
+                self.update_interval = timedelta(hours=NORMAL_UPDATE_INTERVAL_HOURS)
+
         day_before_yesterday = today_local_date - timedelta(days=2)
         keys_to_delete = [
             date_key for date_key in self.all_prices if date_key < day_before_yesterday
@@ -228,7 +259,7 @@ class ElprisDataUpdateCoordinator(DataUpdateCoordinator):
             for key_to_delete in keys_to_delete:
                 if key_to_delete in self.all_prices:
                     del self.all_prices[key_to_delete]
-        
+
         if not self.all_prices.get(today_local_date):
             _LOGGER.warning(
                 f"No price data available for today ({today_local_date}) after update attempt."
@@ -239,6 +270,6 @@ class ElprisDataUpdateCoordinator(DataUpdateCoordinator):
             f"Tomorrow's prices fetched for: {self.tomorrow_prices_successfully_fetched_for_date}. "
             f"Next update interval: {self.update_interval}."
         )
-        
-        self.last_api_call_timestamp = dt_util.utcnow() 
+
+        self.last_api_call_timestamp = dt_util.utcnow()
         return self.all_prices
