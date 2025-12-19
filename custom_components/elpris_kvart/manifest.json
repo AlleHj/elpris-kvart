@@ -1,16 +1,12 @@
 {
   "domain": "elpris_kvart",
   "name": "Elpris Kvart",
-  "documentation": "https://github.com/AlleHj/home-assistant-elpris-kvart",
-  "issue_tracker": "https://github.com/AlleHj/home-assistant-elpris-kvart/issues",
-  "codeowners": [
-    "@AlleHj"
-  ],
+  "documentation": "https://github.com/AlleHj/elpris-kvart",
+  "issue_tracker": "https://github.com/AlleHj/elpris-kvart/issues",
+  "codeowners": ["@AlleHj"],
   "requirements": [],
   "iot_class": "cloud_polling",
-  "version": "0.1.2",
+  "version": "1.0.0",
   "config_flow": true,
-  "loggers": [
-    "custom_components.elpris_kvart"
-  ]
+  "loggers": ["custom_components.elpris_kvart"]
 }
