@@ -1,5 +1,5 @@
-# Version: 2025-12-19-rev16
-"""Sensor platform for Elpris Timme."""
+# Version: 2025-12-19-rev18
+"""Sensor platform for Elpris Kvart."""
 import logging
 from datetime import timedelta, datetime as DateTime
 
@@ -7,6 +7,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.util import dt as dt_util
 from homeassistant.helpers.event import async_track_point_in_time
 
@@ -18,6 +19,9 @@ from homeassistant.components.sensor import (
 
 from .const import (
     DOMAIN,
+    INTEGRATION_NAME,
+    MANUFACTURER,
+    MODEL,
     CONF_PRICE_AREA,
     CONF_SURCHARGE_ORE,
     DEFAULT_PRICE_AREA,
@@ -45,9 +49,6 @@ from .const import (
 from . import ElprisDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
-SENSOR_VERSION = "2025-12-19-rev16"
-_LOGGER.info(f"Elpris Timme Sensor Module Loaded - Version: {SENSOR_VERSION}")
-
 
 SEK_ROUNDING_DECIMALS = 4
 ORE_ROUNDING_DECIMALS = 2
@@ -57,6 +58,7 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
+    """Set up the Elpris Kvart sensor platform."""
     coordinator: ElprisDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
     price_area = entry.data.get(CONF_PRICE_AREA, DEFAULT_PRICE_AREA)
 
@@ -69,11 +71,13 @@ async def async_setup_entry(
         SurchargeSEKSensor(entry, price_area),
     ]
     async_add_entities(sensors_to_add)
-    _LOGGER.debug(f"Added {len(sensors_to_add)} Elpris Timme sensor entities. Version: {SENSOR_VERSION}")
+    _LOGGER.debug(f"Added {len(sensors_to_add)} {INTEGRATION_NAME} sensor entities.")
 
 
 class BaseElprisSensor(CoordinatorEntity[ElprisDataUpdateCoordinator], SensorEntity):
+    """Base class for all Elpris Kvart sensors."""
     _attr_should_poll = False
+    _attr_has_entity_name = True
 
     def __init__(
         self,
@@ -89,22 +93,21 @@ class BaseElprisSensor(CoordinatorEntity[ElprisDataUpdateCoordinator], SensorEnt
 
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry.entry_id)},
-            "name": f"Elpris Timme ({price_area})",
-            "manufacturer": "Custom ElprisTimme",
-            "model": f"API ({price_area})",
-            "entry_type": "service",
+            "name": f"{INTEGRATION_NAME} ({price_area})",
+            "manufacturer": MANUFACTURER,
+            "model": f"{MODEL} ({price_area})",
+            "entry_type": DeviceEntryType.SERVICE,
         }
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
-        _LOGGER.info(f"Sensor {self.entity_id} (Name: {self.name}, Unique ID: {self.unique_id}) added to HASS.")
+        _LOGGER.debug(f"Sensor {self.entity_id} added to HASS.")
         self._update_internal_data(write_state=True)
         self._schedule_next_price_update()
         self.async_on_remove(
             self.coordinator.async_add_listener(self._handle_coordinator_data_update_for_base)
         )
         if self.coordinator.last_update_success and self.coordinator.data:
-             _LOGGER.debug(f"Sensor {self.unique_id}: Coordinator has data on add, forcing update.")
              self._update_internal_data(write_state=True)
 
     async def async_will_remove_from_hass(self) -> None:
@@ -144,7 +147,6 @@ class BaseElprisSensor(CoordinatorEntity[ElprisDataUpdateCoordinator], SensorEnt
                             break
                     except (TypeError, ValueError, KeyError): continue
         self._raw_current_spot_price_sek = raw_price
-        _LOGGER.debug(f"Sensor {self.unique_id}: Calculated raw_spot_price_sek: {self._raw_current_spot_price_sek}")
 
     def _update_sensor_specific_data(self) -> None:
         raise NotImplementedError()
@@ -168,7 +170,6 @@ class BaseElprisSensor(CoordinatorEntity[ElprisDataUpdateCoordinator], SensorEnt
         self._unsub_timer = async_track_point_in_time(
             self.hass, self._async_price_update_callback, next_update_time
         )
-        _LOGGER.debug(f"Sensor {self.unique_id}: Scheduled next update at {next_update_time}")
 
     async def _async_price_update_callback(self, now_triggered: DateTime) -> None:
         self._update_internal_data(write_state=True)
@@ -237,15 +238,14 @@ class ElprisSpotSensorOre(BaseElprisSensor):
     def __init__(self, coordinator: ElprisDataUpdateCoordinator, entry: ConfigEntry, price_area: str):
         super().__init__(coordinator, entry, price_area)
         self._attr_name = "Spotpris i öre/kWh"
-        object_id_part = f"timelpris_{price_area.lower()}_ore_spot"
+        object_id_part = f"elpris_kvart_{price_area.lower()}_ore_spot"
         self._attr_unique_id = f"{entry.entry_id}_{object_id_part}"
 
-        self._attr_native_unit_of_measurement="öre/kWh"
-        self._attr_suggested_display_precision=ORE_ROUNDING_DECIMALS
+        self._attr_native_unit_of_measurement = "öre/kWh"
+        self._attr_suggested_display_precision = ORE_ROUNDING_DECIMALS
         self._attr_icon = ICON_CURRENCY_SEK
         self._attr_state_class = SensorStateClass.MEASUREMENT
         self._attr_device_class = SensorDeviceClass.MONETARY
-        _LOGGER.debug(f"Initialized {self._attr_name} (Unique ID: {self.unique_id})")
 
     def _update_sensor_specific_data(self) -> None:
         if self._raw_current_spot_price_sek is not None:
@@ -278,15 +278,14 @@ class ElprisInklusivePaslagSensorOre(BaseElprisSensor):
     def __init__(self, coordinator: ElprisDataUpdateCoordinator, entry: ConfigEntry, price_area: str):
         super().__init__(coordinator, entry, price_area)
         self._attr_name = "Spotpris + påslag i öre/kWh"
-        object_id_part = f"timelpris_{price_area.lower()}_ore_total"
+        object_id_part = f"elpris_kvart_{price_area.lower()}_ore_total"
         self._attr_unique_id = f"{entry.entry_id}_{object_id_part}"
 
-        self._attr_native_unit_of_measurement="öre/kWh"
-        self._attr_suggested_display_precision=ORE_ROUNDING_DECIMALS
+        self._attr_native_unit_of_measurement = "öre/kWh"
+        self._attr_suggested_display_precision = ORE_ROUNDING_DECIMALS
         self._attr_icon = ICON_CURRENCY_SEK
         self._attr_state_class = SensorStateClass.MEASUREMENT
         self._attr_device_class = SensorDeviceClass.MONETARY
-        _LOGGER.debug(f"Initialized {self._attr_name} (Unique ID: {self.unique_id})")
 
     def _update_sensor_specific_data(self) -> None:
         surcharge_ore = self._get_surcharge_ore_from_config()
@@ -315,15 +314,14 @@ class ElprisSpotSensorSEK(BaseElprisSensor):
     def __init__(self, coordinator: ElprisDataUpdateCoordinator, entry: ConfigEntry, price_area: str):
         super().__init__(coordinator, entry, price_area)
         self._attr_name = "Spotpris i SEK/kWh"
-        object_id_part = f"timelpris_{price_area.lower()}_sek_spot"
+        object_id_part = f"elpris_kvart_{price_area.lower()}_sek_spot"
         self._attr_unique_id = f"{entry.entry_id}_{object_id_part}"
 
-        self._attr_native_unit_of_measurement="SEK/kWh"
-        self._attr_suggested_display_precision=SEK_ROUNDING_DECIMALS
+        self._attr_native_unit_of_measurement = "SEK/kWh"
+        self._attr_suggested_display_precision = SEK_ROUNDING_DECIMALS
         self._attr_icon = ICON_CURRENCY_SEK
         self._attr_state_class = SensorStateClass.MEASUREMENT
         self._attr_device_class = SensorDeviceClass.MONETARY
-        _LOGGER.debug(f"Initialized {self._attr_name} (Unique ID: {self.unique_id})")
 
     def _update_sensor_specific_data(self) -> None:
         if self._raw_current_spot_price_sek is not None:
@@ -356,15 +354,14 @@ class ElprisInklusivePaslagSensorSEK(BaseElprisSensor):
     def __init__(self, coordinator: ElprisDataUpdateCoordinator, entry: ConfigEntry, price_area: str):
         super().__init__(coordinator, entry, price_area)
         self._attr_name = "Spotpris + påslag i SEK/kWh"
-        object_id_part = f"timelpris_{price_area.lower()}_sek_total"
+        object_id_part = f"elpris_kvart_{price_area.lower()}_sek_total"
         self._attr_unique_id = f"{entry.entry_id}_{object_id_part}"
 
-        self._attr_native_unit_of_measurement="SEK/kWh"
-        self._attr_suggested_display_precision=SEK_ROUNDING_DECIMALS
+        self._attr_native_unit_of_measurement = "SEK/kWh"
+        self._attr_suggested_display_precision = SEK_ROUNDING_DECIMALS
         self._attr_icon = ICON_CURRENCY_SEK
         self._attr_state_class = SensorStateClass.MEASUREMENT
         self._attr_device_class = SensorDeviceClass.MONETARY
-        _LOGGER.debug(f"Initialized {self._attr_name} (Unique ID: {self.unique_id})")
 
     def _get_surcharge_sek_from_config(self) -> float:
         return round(self._get_surcharge_ore_from_config() / 100.0, SEK_ROUNDING_DECIMALS)
@@ -399,6 +396,7 @@ class SurchargeDisplaySensorBase(SensorEntity):
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_device_class = SensorDeviceClass.MONETARY
     _attr_icon = ICON_SURCHARGE_DISPLAY
+    _attr_has_entity_name = True
 
     def __init__(self, entry: ConfigEntry, price_area: str):
         self._entry = entry
@@ -407,12 +405,11 @@ class SurchargeDisplaySensorBase(SensorEntity):
 
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry.entry_id)},
-            "name": f"Elpris Timme ({price_area})",
-            "manufacturer": "Custom ElprisTimme",
-            "model": f"API ({price_area})",
-            "entry_type": "service",
+            "name": f"{INTEGRATION_NAME} ({price_area})",
+            "manufacturer": MANUFACTURER,
+            "model": f"{MODEL} ({price_area})",
+            "entry_type": DeviceEntryType.SERVICE,
         }
-        _LOGGER.debug(f"Initialized {self.name} (Unique ID: {self.unique_id}), Surcharge: {self._attr_native_value}")
 
     def _get_surcharge_ore_from_config(self) -> float:
         """Helper to get surcharge in öre from config entry."""
@@ -430,13 +427,11 @@ class SurchargeOreSensor(SurchargeDisplaySensorBase):
     """Sensor to display the configured surcharge in öre/kWh."""
 
     def __init__(self, entry: ConfigEntry, price_area: str):
-        self._attr_name = "Spotpris påslag Öre /kWh"
-        self._attr_object_id = f"elpris_paslag_ore_{price_area.lower()}"
-        self._attr_unique_id = f"{entry.entry_id}_{self._attr_object_id}"
+        self._attr_name = "Spotpris påslag Öre/kWh"
+        self._attr_unique_id = f"{entry.entry_id}_elpris_paslag_ore_{price_area.lower()}"
         self._attr_native_unit_of_measurement = "öre/kWh"
         self._attr_suggested_display_precision = ORE_ROUNDING_DECIMALS
         super().__init__(entry, price_area)
-
 
     def _update_surcharge_value(self) -> None:
         """Update the sensor's native value to the surcharge in öre."""
@@ -447,9 +442,8 @@ class SurchargeSEKSensor(SurchargeDisplaySensorBase):
     """Sensor to display the configured surcharge in SEK/kWh."""
 
     def __init__(self, entry: ConfigEntry, price_area: str):
-        self._attr_name = "Spotpris påslag SEK /kWh"
-        self._attr_object_id = f"elpris_paslag_sek_{price_area.lower()}"
-        self._attr_unique_id = f"{entry.entry_id}_{self._attr_object_id}"
+        self._attr_name = "Spotpris påslag SEK/kWh"
+        self._attr_unique_id = f"{entry.entry_id}_elpris_paslag_sek_{price_area.lower()}"
         self._attr_native_unit_of_measurement = "SEK/kWh"
         self._attr_suggested_display_precision = SEK_ROUNDING_DECIMALS
         super().__init__(entry, price_area)

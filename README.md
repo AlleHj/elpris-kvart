@@ -1,4 +1,4 @@
-# Elpris Kvart (Home Assistant Integration)
+# Elpris Kvart (Home Assistant Integration). Version 1.0.5.
 
 **Elpris Kvart** är en anpassad integration (Custom Component) för Home Assistant som hämtar svenska elpriser (spotpriser) och presenterar dem med 15-minuters upplösning (kvartspriser). Integrationen hanterar automatiskt valutakonvertering, användarkonfigurerade påslag och ger dig totalpriset direkt i sensorer.
 
@@ -67,8 +67,8 @@ Integrationen skapar en enhet med 6 sensorer för att ge dig full kontroll över
 | **Spotpris + påslag i öre/kWh** | Spotpris plus ditt konfigurerade påslag. | öre/kWh | Varje kvart |
 | **Spotpris i SEK/kWh** | Det rena spotpriset i kronor. | SEK/kWh | Varje kvart |
 | **Spotpris + påslag i SEK/kWh** | Spotpris plus påslag i kronor. | SEK/kWh | Varje kvart |
-| **Spotpris påslag Öre /kWh** | Visar ditt nuvarande inställda påslag. | öre/kWh | Vid ändring |
-| **Spotpris påslag SEK /kWh** | Visar ditt påslag omräknat till kronor. | SEK/kWh | Vid ändring |
+| **Spotpris påslag Öre/kWh** | Visar ditt nuvarande inställda påslag. | öre/kWh | Vid ändring |
+| **Spotpris påslag SEK/kWh** | Visar ditt påslag omräknat till kronor. | SEK/kWh | Vid ändring |
 
 ### Attribut
 Sensorerna innehåller rik data (attribut) som kan användas för grafer eller automationer:
@@ -81,12 +81,12 @@ Sensorerna innehåller rik data (attribut) som kan användas för grafer eller a
 
 ## 🛠 Teknisk Beskrivning
 
-Denna integration är byggd för att vara resurssnål och tillförlitlig. [cite_start]Nedan följer en beskrivning av hur den fungerar "under huven"[cite: 1, 39].
+Denna integration är byggd för att vara resurssnål och tillförlitlig.
 
 ### Datahämtning och API
-[cite_start]Integrationen använder en central `ElprisDataUpdateCoordinator` [cite: 39] som kommunicerar med API:et `https://www.elprisetjustnu.se`.
+Integrationen använder en central `ElprisDataUpdateCoordinator` som kommunicerar med API:et `https://www.elprisetjustnu.se`.
 * **Normal drift:** Data hämtas en gång per dygn för att minimera trafik.
-* **Morgondagens priser:** Varje dag efter kl 14:00 (när börsen satt priserna) försöker integrationen hämta nästa dygns data. [cite_start]Om det misslyckas (t.ex. om API:et är sent), försöker den igen var 30:e minut[cite: 43, 44].
+* **Morgondagens priser:** Varje dag efter kl 14:00 (när börsen satt priserna) försöker integrationen hämta nästa dygns data. Om det misslyckas (t.ex. om API:et är sent), försöker den igen var 30:e minut.
 
 ### Kvarts-uppdateringar
 Till skillnad från många äldre integrationer som bara uppdaterar varje timme, använder `Elpris Kvart` en smart timer-logik.
@@ -95,8 +95,8 @@ Till skillnad från många äldre integrationer som bara uppdaterar varje timme,
 
 ### Felhantering
 Om API:et skulle ligga nere eller om internetförbindelsen bryts:
-* [cite_start]Integrationen loggar varningar men kraschar inte[cite: 115].
-* [cite_start]Om data saknas för en specifik tidpunkt visas sensorn som `unavailable` eller `unknown` tills data kan hämtas[cite: 117].
+* Integrationen loggar varningar men kraschar inte.
+* Om data saknas för en specifik tidpunkt visas sensorn som `unavailable` eller `unknown` tills data kan hämtas.
 
 ---
 

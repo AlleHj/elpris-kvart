@@ -1,8 +1,13 @@
-# Version: 2025-05-21-rev15
+# Version: 2025-12-19-rev18
 """Constants for the Elpris Kvart integration."""
 
 DOMAIN = "elpris_kvart"
 PLATFORMS = ["sensor"]
+
+# Integration Identity
+INTEGRATION_NAME = "Elpris Kvart"
+MANUFACTURER = "Custom Elpris"
+MODEL = "Price API (SE)"
 
 # Default configuration values
 DEFAULT_PRICE_AREA = "SE4"
@@ -46,4 +51,4 @@ ATTR_SURCHARGE_APPLIED_SEK_ON_SURCHARGE_SENSOR = "surcharge_applied_sek"
 
 # Icons
 ICON_CURRENCY_SEK = "mdi:currency-sek"
-ICON_SURCHARGE_DISPLAY = "mdi:cash-plus"  # New icon for surcharge display sensors
+ICON_SURCHARGE_DISPLAY = "mdi:cash-plus"

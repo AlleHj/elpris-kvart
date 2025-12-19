@@ -1,5 +1,5 @@
-# Version: 2025-12-19-rev17
-"""The Elpris Timme integration."""
+# Version: 2025-12-19-rev18
+"""The Elpris Kvart integration."""
 import asyncio
 import logging
 from datetime import timedelta, date as DateObject, datetime as DateTimeObject
@@ -19,13 +19,14 @@ from .const import (
     DAILY_FETCH_HOUR,
     RETRY_INTERVAL_MINUTES,
     NORMAL_UPDATE_INTERVAL_HOURS,
+    INTEGRATION_NAME,
 )
 
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Elpris Timme from a config entry."""
+    """Set up Elpris Kvart from a config entry."""
     hass.data.setdefault(DOMAIN, {})
 
     price_area = entry.data.get(CONF_PRICE_AREA, DEFAULT_PRICE_AREA)
@@ -113,7 +114,7 @@ class ElprisDataUpdateCoordinator(DataUpdateCoordinator[dict[DateObject, list]])
         super().__init__(
             hass,
             _LOGGER,
-            name=f"{DOMAIN} ({self.price_area})",
+            name=f"{INTEGRATION_NAME} ({self.price_area})",
             update_method=self._async_update_data,
             update_interval=self._current_update_interval,
         )

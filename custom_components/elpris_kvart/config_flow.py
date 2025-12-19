@@ -1,5 +1,5 @@
-# Version: 2025-12-19-rev16
-"""Config flow for Elpris Timme integration."""
+# Version: 2025-12-19-rev18
+"""Config flow for Elpris Kvart integration."""
 import voluptuous as vol
 import logging
 
@@ -9,6 +9,7 @@ from homeassistant.helpers import selector
 
 from .const import (
     DOMAIN,
+    INTEGRATION_NAME,
     CONF_PRICE_AREA,
     CONF_SURCHARGE_ORE,
     DEFAULT_PRICE_AREA,
@@ -18,8 +19,8 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-class ElprisTimmeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for Elpris Timme."""
+class ElprisKvartConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    """Handle a config flow for Elpris Kvart."""
 
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
@@ -47,12 +48,12 @@ class ElprisTimmeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             price_area = user_input[CONF_PRICE_AREA]
 
             # Config entry unique ID is based on price_area
-            await self.async_set_unique_id(f"elpris_timme_config_{price_area.lower()}")
+            await self.async_set_unique_id(f"elpris_kvart_config_{price_area.lower()}")
             self._abort_if_unique_id_configured()
 
             if await self._validate_input(user_input):
                 return self.async_create_entry(
-                    title=f"Elpris Timme ({price_area})",
+                    title=f"{INTEGRATION_NAME} ({price_area})",
                     data=user_input
                 )
             errors["base"] = "invalid_input"
@@ -85,11 +86,11 @@ class ElprisTimmeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(config_entry: config_entries.ConfigEntry):
         """Get the options flow for this handler."""
-        return ElprisTimmeOptionsFlowHandler(config_entry)
+        return ElprisKvartOptionsFlowHandler(config_entry)
 
 
-class ElprisTimmeOptionsFlowHandler(config_entries.OptionsFlow):
-    """Handle an options flow for Elpris Timme."""
+class ElprisKvartOptionsFlowHandler(config_entries.OptionsFlow):
+    """Handle an options flow for Elpris Kvart."""
 
     def __init__(self, config_entry: config_entries.ConfigEntry):
         """Initialize options flow."""
