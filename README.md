@@ -1,4 +1,4 @@
-# Elpris Kvart (Home Assistant Integration). Version 1.0.5.
+# Elpris Kvart (Home Assistant Integration).
 
 ![Version](https://img.shields.io/badge/version-1.0.8-blue.svg)
 ![Home Assistant](https://img.shields.io/badge/home%20assistant-component-orange.svg)
