@@ -190,7 +190,8 @@ class BaseElprisSensor(CoordinatorEntity[ElprisDataUpdateCoordinator], SensorEnt
                 if "time_end" in item and item["time_end"] is not None:
                     formatted_item["time_end"] = item["time_end"]
                 formatted_prices.append(formatted_item)
-            except (KeyError, TypeError, ValueError): continue
+            except (KeyError, TypeError, ValueError):
+                continue
         return formatted_prices
 
     def _format_raw_price_list_ore(self, raw_price_data_list: list) -> list:
@@ -204,7 +205,8 @@ class BaseElprisSensor(CoordinatorEntity[ElprisDataUpdateCoordinator], SensorEnt
                 if "time_end" in item and item["time_end"] is not None:
                     formatted_item["time_end"] = item["time_end"]
                 formatted_prices.append(formatted_item)
-            except (KeyError, TypeError, ValueError): continue
+            except (KeyError, TypeError, ValueError):
+                continue
         return formatted_prices
 
     def _format_raw_price_list_with_surcharge_ore(self, raw_price_data_list: list, surcharge_ore: float) -> list:
@@ -219,7 +221,8 @@ class BaseElprisSensor(CoordinatorEntity[ElprisDataUpdateCoordinator], SensorEnt
                 if "time_end" in item and item["time_end"] is not None:
                     formatted_item["time_end"] = item["time_end"]
                 formatted_prices.append(formatted_item)
-            except (KeyError, TypeError, ValueError): continue
+            except (KeyError, TypeError, ValueError):
+                continue
         return formatted_prices
 
     def _format_raw_price_list_with_surcharge_sek(self, raw_price_data_list: list, surcharge_sek: float) -> list:
@@ -234,7 +237,8 @@ class BaseElprisSensor(CoordinatorEntity[ElprisDataUpdateCoordinator], SensorEnt
                 if "time_end" in item and item["time_end"] is not None:
                     formatted_item["time_end"] = item["time_end"]
                 formatted_prices.append(formatted_item)
-            except (KeyError, TypeError, ValueError): continue
+            except (KeyError, TypeError, ValueError):
+                continue
         return formatted_prices
 
     def _get_surcharge_ore_from_config(self) -> float:
