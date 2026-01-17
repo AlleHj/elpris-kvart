@@ -111,7 +111,8 @@ class BaseElprisSensor(CoordinatorEntity[ElprisDataUpdateCoordinator], SensorEnt
              self._update_internal_data(write_state=True)
 
     async def async_will_remove_from_hass(self) -> None:
-        if self._unsub_timer: self._unsub_timer()
+        if self._unsub_timer:
+            self._unsub_timer()
         await super().async_will_remove_from_hass()
 
     @callback
@@ -121,12 +122,14 @@ class BaseElprisSensor(CoordinatorEntity[ElprisDataUpdateCoordinator], SensorEnt
         else:
             self._raw_current_spot_price_sek = None
             self._update_sensor_specific_data()
-            if self.hass: self.async_write_ha_state()
+            if self.hass:
+                self.async_write_ha_state()
 
     def _update_internal_data(self, write_state: bool = False) -> None:
         self._calculate_raw_current_spot_price_sek()
         self._update_sensor_specific_data()
-        if write_state and self.hass: self.async_write_ha_state()
+        if write_state and self.hass:
+            self.async_write_ha_state()
 
     def _calculate_raw_current_spot_price_sek(self) -> None:
         raw_price = None
@@ -145,7 +148,8 @@ class BaseElprisSensor(CoordinatorEntity[ElprisDataUpdateCoordinator], SensorEnt
                         if time_start_dt_local == current_quarter_start_local:
                             raw_price = float(price_info['SEK_per_kWh'])
                             break
-                    except (TypeError, ValueError, KeyError): continue
+                    except (TypeError, ValueError, KeyError):
+                        continue
         self._raw_current_spot_price_sek = raw_price
 
     def _update_sensor_specific_data(self) -> None:
@@ -153,7 +157,8 @@ class BaseElprisSensor(CoordinatorEntity[ElprisDataUpdateCoordinator], SensorEnt
 
     def _schedule_next_price_update(self) -> None:
         """Schedule update for the next 15-minute mark."""
-        if self._unsub_timer: self._unsub_timer()
+        if self._unsub_timer:
+            self._unsub_timer()
 
         now = dt_util.now()
         # Calculate the start of the current 15-minute period
@@ -176,7 +181,8 @@ class BaseElprisSensor(CoordinatorEntity[ElprisDataUpdateCoordinator], SensorEnt
         self._schedule_next_price_update()
 
     def _format_raw_price_list_sek(self, raw_price_data_list: list) -> list:
-        if not raw_price_data_list: return []
+        if not raw_price_data_list:
+            return []
         formatted_prices = []
         for item in raw_price_data_list:
             try:
@@ -188,7 +194,8 @@ class BaseElprisSensor(CoordinatorEntity[ElprisDataUpdateCoordinator], SensorEnt
         return formatted_prices
 
     def _format_raw_price_list_ore(self, raw_price_data_list: list) -> list:
-        if not raw_price_data_list: return []
+        if not raw_price_data_list:
+            return []
         formatted_prices = []
         for item in raw_price_data_list:
             try:
@@ -201,7 +208,8 @@ class BaseElprisSensor(CoordinatorEntity[ElprisDataUpdateCoordinator], SensorEnt
         return formatted_prices
 
     def _format_raw_price_list_with_surcharge_ore(self, raw_price_data_list: list, surcharge_ore: float) -> list:
-        if not raw_price_data_list: return []
+        if not raw_price_data_list:
+            return []
         formatted_prices = []
         for item in raw_price_data_list:
             try:
@@ -215,7 +223,8 @@ class BaseElprisSensor(CoordinatorEntity[ElprisDataUpdateCoordinator], SensorEnt
         return formatted_prices
 
     def _format_raw_price_list_with_surcharge_sek(self, raw_price_data_list: list, surcharge_sek: float) -> list:
-        if not raw_price_data_list: return []
+        if not raw_price_data_list:
+            return []
         formatted_prices = []
         for item in raw_price_data_list:
             try:
@@ -230,8 +239,10 @@ class BaseElprisSensor(CoordinatorEntity[ElprisDataUpdateCoordinator], SensorEnt
 
     def _get_surcharge_ore_from_config(self) -> float:
         surcharge_val = self._entry.options.get(CONF_SURCHARGE_ORE, self._entry.data.get(CONF_SURCHARGE_ORE, DEFAULT_SURCHARGE_ORE))
-        try: return float(surcharge_val)
-        except (ValueError, TypeError): return DEFAULT_SURCHARGE_ORE
+        try:
+            return float(surcharge_val)
+        except (ValueError, TypeError):
+            return DEFAULT_SURCHARGE_ORE
 
 # --- Specific Sensor Implementations ---
 class ElprisSpotSensorOre(BaseElprisSensor):
