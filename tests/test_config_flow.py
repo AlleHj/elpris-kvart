@@ -2,14 +2,12 @@
 from unittest.mock import patch
 import pytest
 from homeassistant import config_entries, data_entry_flow
-from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant
 
 from custom_components.elpris_kvart.const import (
     DOMAIN,
     CONF_PRICE_AREA,
-    CONF_SURCHARGE_ORE,
-    PRICE_AREAS,
+    CONF_SURCHARGE_ORE
 )
 
 # Testfall 1: Framgångsrik installation av integrationen

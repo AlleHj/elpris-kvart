@@ -1,7 +1,6 @@
 """Tester för Elpris Kvart sensorer."""
 from unittest.mock import patch
 from datetime import datetime, timedelta
-import pytest
 
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
