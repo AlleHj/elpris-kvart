@@ -7,7 +7,8 @@ Testerna täcker:
 2. **Sensorlogik:** Verifierar att sensorn visar rätt pris vid en given tidpunkt, att den uppdateras vid kvartsskifte, och att attributen (max/min etc.) beräknas korrekt.
 
 ## Resultat av tester
-Testerna passerar (med undantag för ett tekniskt fel vid nedstängning av testmiljön som beror på hur tiden manipuleras i testerna, men själva logiken är verifierad).
+Alla tester passerar i både Python 3.12 och 3.13 miljöer.
+En workaround har implementerats i `tests/conftest.py` för att hantera ett känt problem med trådhantering (`_run_safe_shutdown_loop`) i kombination med `pytest-homeassistant-custom-component` på nyare Python-versioner.
 
 ## Identifierade problem och observationer
 

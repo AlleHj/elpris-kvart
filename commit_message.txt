@@ -1,6 +1,7 @@
-Add tests and analysis report
+Add tests and analysis report (fixes CI thread error)
 
 - Added tests for config flow (success/failure cases).
 - Added tests for sensor logic (value at time, updates, attributes).
 - Identified issue with hourly vs quarterly data matching.
+- Implemented workaround for `_run_safe_shutdown_loop` thread leak in Python 3.12 CI environment.
 - Created analysis report in REPORT.md.
