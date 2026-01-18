@@ -1,6 +1,6 @@
 # Elpris Kvart (Home Assistant Integration).
 
-![Version](https://img.shields.io/badge/version-1.1.1-blue.svg)
+![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)
 ![Home Assistant](https://img.shields.io/badge/home%20assistant-component-orange.svg)
 
 **Elpris Kvart** är en anpassad integration (Custom Component) för Home Assistant som hämtar svenska elpriser (spotpriser) och presenterar dem med 15-minuters upplösning (kvartspriser). Integrationen hanterar automatiskt valutakonvertering, användarkonfigurerade påslag och ger dig totalpriset direkt i sensorer.
