@@ -1,0 +1,6 @@
+Add tests and analysis report
+
+- Added tests for config flow (success/failure cases).
+- Added tests for sensor logic (value at time, updates, attributes).
+- Identified issue with hourly vs quarterly data matching.
+- Created analysis report in REPORT.md.
