@@ -1,16 +1,17 @@
 """Test elpris_kvart config flow."""
+
 from unittest.mock import patch
+
 import pytest
 from homeassistant import config_entries, data_entry_flow
-from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant
 
 from custom_components.elpris_kvart.const import (
-    DOMAIN,
     CONF_PRICE_AREA,
     CONF_SURCHARGE_ORE,
-    PRICE_AREAS,
+    DOMAIN,
 )
+
 
 # Testfall 1: Framgångsrik installation av integrationen
 # Förklaring: Detta test simulerar att användaren går igenom konfigurationsflödet
@@ -55,8 +56,8 @@ async def test_successful_config_flow(hass: HomeAssistant) -> None:
 
 # Testfall 2: Validering av felaktigt påslag
 # Förklaring: Detta test simulerar att användaren matar in ett negativt tal som påslag.
-# Eftersom schemat har en spärr (min=0.0) kommer Home Assistant kasta ett InvalidData exception
-# innan vår egen valideringslogik ens nås. Detta bekräftar dock att spärren fungerar.
+# Eftersom schemat har en spärr (min=0.0) kommer Home Assistant kasta ett InvalidData
+# exception innan vår egen valideringslogik ens nås.
 async def test_invalid_surcharge(hass: HomeAssistant) -> None:
     """Testa att config flow hanterar felaktigt påslag."""
 

@@ -1,7 +1,6 @@
-Add tests and analysis report (fixes CI thread error)
+Refactor code with ruff (fix warnings and formatting)
 
-- Added tests for config flow (success/failure cases).
-- Added tests for sensor logic (value at time, updates, attributes).
-- Identified issue with hourly vs quarterly data matching.
-- Implemented workaround for `_run_safe_shutdown_loop` thread leak in Python 3.12 CI environment.
-- Created analysis report in REPORT.md.
+- Ran `ruff check --fix` and `ruff format` to clean up the codebase.
+- Manually fixed long lines (E501) by splitting strings and comments.
+- Ensured all tests pass and no regression was introduced.
+- Kept the CI thread leak workaround in `tests/conftest.py`.
