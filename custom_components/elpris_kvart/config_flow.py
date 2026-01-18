@@ -1,23 +1,25 @@
 # Version: 2025-12-19-rev18
 """Config flow for Elpris Kvart integration."""
-import voluptuous as vol
+
 import logging
 
+import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.helpers import selector
 
 from .const import (
-    DOMAIN,
-    INTEGRATION_NAME,
     CONF_PRICE_AREA,
     CONF_SURCHARGE_ORE,
     DEFAULT_PRICE_AREA,
     DEFAULT_SURCHARGE_ORE,
+    DOMAIN,
+    INTEGRATION_NAME,
     PRICE_AREAS,
 )
 
 _LOGGER = logging.getLogger(__name__)
+
 
 class ElprisKvartConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Elpris Kvart."""
@@ -33,10 +35,12 @@ class ElprisKvartConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         try:
             surcharge = float(user_input[CONF_SURCHARGE_ORE])
             if surcharge < 0:
-                 _LOGGER.error(f"Invalid surcharge (negative): {surcharge}")
-                 return False
+                _LOGGER.error(f"Invalid surcharge (negative): {surcharge}")
+                return False
         except ValueError:
-            _LOGGER.error(f"Invalid surcharge (not a number): {user_input[CONF_SURCHARGE_ORE]}")
+            _LOGGER.error(
+                f"Invalid surcharge (not a number): {user_input[CONF_SURCHARGE_ORE]}"
+            )
             return False
         return True
 
@@ -53,33 +57,37 @@ class ElprisKvartConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             if await self._validate_input(user_input):
                 return self.async_create_entry(
-                    title=f"{INTEGRATION_NAME} ({price_area})",
-                    data=user_input
+                    title=f"{INTEGRATION_NAME} ({price_area})", data=user_input
                 )
             errors["base"] = "invalid_input"
 
-        data_schema = vol.Schema({
-            vol.Required(CONF_PRICE_AREA, default=DEFAULT_PRICE_AREA): vol.In(PRICE_AREAS),
-            vol.Required(
-                CONF_SURCHARGE_ORE,
-                default=DEFAULT_SURCHARGE_ORE
-            ): selector.NumberSelector(
-                selector.NumberSelectorConfig(
-                    min=0.0,
-                    step=0.01,
-                    mode=selector.NumberSelectorMode.BOX,
-                    unit_of_measurement="öre",
-                )
-            ),
-        })
+        data_schema = vol.Schema(
+            {
+                vol.Required(CONF_PRICE_AREA, default=DEFAULT_PRICE_AREA): vol.In(
+                    PRICE_AREAS
+                ),
+                vol.Required(
+                    CONF_SURCHARGE_ORE, default=DEFAULT_SURCHARGE_ORE
+                ): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=0.0,
+                        step=0.01,
+                        mode=selector.NumberSelectorMode.BOX,
+                        unit_of_measurement="öre",
+                    )
+                ),
+            }
+        )
 
         return self.async_show_form(
             step_id="user",
             data_schema=data_schema,
             errors=errors,
             description_placeholders={
-                "surcharge_help_text": "Ange ditt elpåslag i öre per kWh (t.ex. 1.25 för 1,25 öre). Detta påslag kommer att adderas till spotpriset."
-            }
+                "surcharge_help_text": "Ange ditt elpåslag i öre per kWh "
+                "(t.ex. 1.25 för 1,25 öre). Detta påslag kommer att "
+                "adderas till spotpriset."
+            },
         )
 
     @staticmethod
@@ -96,7 +104,8 @@ class ElprisKvartOptionsFlowHandler(config_entries.OptionsFlow):
         """Initialize options flow."""
         self._config_entry = config_entry
         self.current_surcharge = self._config_entry.options.get(
-            CONF_SURCHARGE_ORE, self._config_entry.data.get(CONF_SURCHARGE_ORE, DEFAULT_SURCHARGE_ORE)
+            CONF_SURCHARGE_ORE,
+            self._config_entry.data.get(CONF_SURCHARGE_ORE, DEFAULT_SURCHARGE_ORE),
         )
 
     async def async_step_init(self, user_input=None):
@@ -114,19 +123,20 @@ class ElprisKvartOptionsFlowHandler(config_entries.OptionsFlow):
             except ValueError:
                 errors["base"] = "invalid_surcharge_format"
 
-        options_schema = vol.Schema({
-            vol.Required(
-                CONF_SURCHARGE_ORE,
-                default=self.current_surcharge
-            ): selector.NumberSelector(
-                selector.NumberSelectorConfig(
-                    min=0.0,
-                    step=0.01,
-                    mode=selector.NumberSelectorMode.BOX,
-                    unit_of_measurement="öre",
-                )
-            ),
-        })
+        options_schema = vol.Schema(
+            {
+                vol.Required(
+                    CONF_SURCHARGE_ORE, default=self.current_surcharge
+                ): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=0.0,
+                        step=0.01,
+                        mode=selector.NumberSelectorMode.BOX,
+                        unit_of_measurement="öre",
+                    )
+                ),
+            }
+        )
 
         return self.async_show_form(
             step_id="init",
@@ -134,5 +144,5 @@ class ElprisKvartOptionsFlowHandler(config_entries.OptionsFlow):
             errors=errors,
             description_placeholders={
                 "surcharge_help_text": "Ändra ditt elpåslag i öre per kWh."
-            }
+            },
         )

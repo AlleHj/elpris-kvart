@@ -1,0 +1,6 @@
+Refactor code with ruff (fix warnings and formatting)
+
+- Ran `ruff check --fix` and `ruff format` to clean up the codebase.
+- Manually fixed long lines (E501) by splitting strings and comments.
+- Ensured all tests pass and no regression was introduced.
+- Kept the CI thread leak workaround in `tests/conftest.py`.
