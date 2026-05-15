@@ -2,9 +2,7 @@
 """Tester för Elpris Kvart sensorer."""
 
 from datetime import UTC, datetime, timedelta
-
 from homeassistant.core import HomeAssistant
-from homeassistant.util import dt as dt_util
 
 from custom_components.elpris_kvart.const import (
     CONF_PRICE_AREA,
