@@ -1,3 +1,4 @@
+# Version: 2026-05-15 - Återställd thread-workaround för bakåtkompatibilitet med Stable/3.12 + strikt tidszonsåterställning.
 """Global fixtures for elpris_kvart integration tests."""
 
 import threading
@@ -9,6 +10,14 @@ from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
 pytest_plugins = "pytest_homeassistant_custom_component"
+
+
+@pytest.fixture(autouse=True)
+def restore_timezone():
+    """Säkerställer att tidszonen alltid återställs efter varje test för att förhindra läckage."""
+    default_tz = dt_util.DEFAULT_TIME_ZONE
+    yield
+    dt_util.DEFAULT_TIME_ZONE = default_tz
 
 
 @pytest.fixture(autouse=True)
@@ -39,7 +48,9 @@ def mock_elpris_api_fixture():
 
 @pytest.fixture(autouse=True)
 async def ensure_cleanup(hass):
-    """Försök tvinga fram cleanup av timers och dölj kända lingering threads."""
+    """Försök tvinga fram cleanup av timers och dölj kända lingering threads.
+    Krävs för bakåtkompatibilitet med Stable/3.12 där testramverket annars kraschar.
+    """
     yield
     # Vänta på att eventuella pågående tasks ska bli klara
     await hass.async_block_till_done()
@@ -49,10 +60,9 @@ async def ensure_cleanup(hass):
     async_fire_time_changed(hass, future)
     await hass.async_block_till_done()
 
-    # WORKAROUND: Python 3.12 + HA test plugin har problem med att stänga ner
+    # WORKAROUND: Äldre versioner av test-pluginet har problem med att stänga ner
     # _run_safe_shutdown_loop. Vi döper om tråden så att test-pluginet tror att
     # det är en systemtråd (startar med "waitpid-").
-    # Detta undviker AssertionError vid teardown.
     for thread in threading.enumerate():
         if "_run_safe_shutdown_loop" in thread.name:
             thread.name = f"waitpid-suppressed-{thread.name}"
