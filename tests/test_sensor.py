@@ -1,6 +1,7 @@
+# Version: 2026-05-15 - Ersatt föråldrade tzinfo-anrop med moderna datetime.UTC.
 """Tester för Elpris Kvart sensorer."""
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
@@ -82,7 +83,7 @@ async def test_sensor_update_on_time_change(
     await hass.config.async_set_time_zone("UTC")
 
     # Starta 12:59 UTC
-    initial_time = datetime(2023, 10, 25, 12, 59, 0, tzinfo=dt_util.UTC)
+    initial_time = datetime(2023, 10, 25, 12, 59, 0, tzinfo=UTC)
     freezer.move_to(initial_time)
 
     mock_elpris_api.return_value = MOCK_PRICES_UTC
