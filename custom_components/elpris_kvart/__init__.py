@@ -1,7 +1,6 @@
 # Version: 2025-12-19-rev18
 """The Elpris Kvart integration."""
 
-import asyncio
 import logging
 from datetime import date as DateObject
 from datetime import datetime as DateTimeObject
@@ -93,11 +92,11 @@ class ElprisApi:
                     f"Successfully fetched {len(data)} price points for {target_date}"
                 )
                 return data
-        except asyncio.TimeoutError:
+        except TimeoutError:
             _LOGGER.warning(
                 f"Timeout when fetching prices for {target_date} from {api_url}"
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             _LOGGER.error(
                 f"Error fetching prices for {target_date} from {api_url}: {e}"
             )

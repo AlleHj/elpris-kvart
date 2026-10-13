@@ -162,7 +162,7 @@ class BaseElprisSensor(CoordinatorEntity[ElprisDataUpdateCoordinator], SensorEnt
         self._raw_current_spot_price_sek = raw_price
 
     def _update_sensor_specific_data(self) -> None:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def _schedule_next_price_update(self) -> None:
         """Schedule update for the next 15-minute mark."""
@@ -558,7 +558,7 @@ class SurchargeDisplaySensorBase(SensorEntity):
 
     def _update_surcharge_value(self) -> None:
         """Update the sensor's native value based on the config."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 class SurchargeOreSensor(SurchargeDisplaySensorBase):
